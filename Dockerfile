@@ -1,6 +1,6 @@
 FROM python:3.10
 
-# Install system packages needed by TensorFlow
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -11,9 +11,10 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     software-properties-common \
     unzip \
+    ffmpeg \
     && apt-get clean
 
-# Create user
+# Create a non-root user
 RUN useradd -m -u 1000 user
 USER user
 ENV PATH="/home/user/.local/bin:$PATH"
@@ -21,12 +22,12 @@ ENV PATH="/home/user/.local/bin:$PATH"
 # Set working directory
 WORKDIR /app
 
-# Install Python dependencies
-COPY --chown=user requirements.txt . 
+# Install Python packages
+COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy app code
+# Copy the app
 COPY --chown=user . /app
 
-# 🛠️ Correct way: use sh to inject $PORT
+# Start the server — IMPORTANT: Use sh -c to expand $PORT
 CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port $PORT"]
