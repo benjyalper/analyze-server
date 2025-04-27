@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
-from typing import Dict, Any, List
+from typing import Dict, Any
 import shutil
 import traceback
 import os
@@ -14,7 +14,7 @@ app = FastAPI()
 # --- Enable CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all for now
+    allow_origins=["*"],  # Allow all origins (development mode)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,7 +42,7 @@ async def ping() -> Dict[str, str]:
 @app.post("/analyze-audio/")
 async def analyze_audio(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Analyze uploaded audio file, return detected notes.
+    Analyze uploaded audio file and return detected notes.
     """
     temp_path = None
     try:
@@ -61,8 +61,7 @@ async def analyze_audio(file: UploadFile = File(...)) -> Dict[str, Any]:
         model_output = predict(temp_path)
 
         if not isinstance(model_output, (tuple, list)) or len(model_output) < 3:
-            raise ValueError(
-                f"Unexpected prediction output format: {model_output}")
+            raise ValueError("Unexpected prediction output format.")
 
         note_events = model_output[2]
 
@@ -73,7 +72,6 @@ async def analyze_audio(file: UploadFile = File(...)) -> Dict[str, Any]:
             duration = end_time - start_time
             midi = int(pitch)
 
-            # Basic filtering
             if confidence >= 0.6 and duration >= 0.05:
                 detected_notes.append({
                     "start_time": float(start_time),
@@ -88,9 +86,14 @@ async def analyze_audio(file: UploadFile = File(...)) -> Dict[str, Any]:
     except Exception as e:
         print("❌ Error during audio analysis:", e)
         traceback.print_exc()
-        raise HTTPException(
-            status_code=500, detail=f"Prediction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
+
+# --- Server Run (Local or Hosted) ---
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 7860))  # Railway will inject $PORT
+    uvicorn.run("app:app", host="0.0.0.0", port=port)
