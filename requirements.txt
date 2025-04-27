@@ -1,8 +1,9 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydub
 torch
 basic-pitch
 aiofiles
 openai
 python-multipart
+tensorflow
