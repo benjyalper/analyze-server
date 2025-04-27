@@ -1,29 +1,32 @@
-# Use lightweight Python 3.10 image
-FROM python:3.10-slim
+FROM python:3.10
 
-# Install system dependencies (for audio processing like ffmpeg)
+# Install system packages needed by TensorFlow
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential \
+    curl \
+    libfreetype6-dev \
+    libhdf5-serial-dev \
+    libzmq3-dev \
+    pkg-config \
+    python3-dev \
+    software-properties-common \
+    unzip \
+    && apt-get clean
 
-# Create a user for security
+# Create user
 RUN useradd -m -u 1000 user
 USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
 # Install Python dependencies
-COPY --chown=user requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --chown=user requirements.txt . 
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the app code
-COPY --chown=user . .
+# Copy app code
+COPY --chown=user . /app
 
-# Expose port 8000 (this is correct for Railway)
-EXPOSE 8000
-
-# Start the app with Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# 🛠️ Correct way: use sh to inject $PORT
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port $PORT"]
