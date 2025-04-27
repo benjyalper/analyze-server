@@ -19,5 +19,5 @@ COPY --chown=user . /app
 # Expose the app
 EXPOSE 7860
 
-# Correct CMD with port expansion
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-7860}"]
+# FINAL - use SHELL style (important!)
+CMD sh -c 'uvicorn app:app --host 0.0.0.0 --port ${PORT:-7860}'
