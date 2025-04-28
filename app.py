@@ -95,5 +95,6 @@ async def analyze_audio(file: UploadFile = File(...)) -> Dict[str, Any]:
 # --- Server Run (Local or Hosted) ---
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 7860))  # Railway will inject $PORT
+    port_str = os.environ.get("PORT", "7860")
+    port = int(port_str) if port_str.isdigit() else 7860
     uvicorn.run("app:app", host="0.0.0.0", port=port)
