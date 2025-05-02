@@ -117,11 +117,10 @@ async def analyze(file: UploadFile = File(...)) -> Dict[str, Any]:
 
         # 7) Return exactly the shape your client code expects:
         return {
-            "results": {
-                "results": metrics
-            },
-            "visualization": f"/static/plots/{vis_filename}"
-        }
+    "librosa": metrics,
+    "visualization": f"/static/plots/{vis_filename}"
+}
+
 
     except Exception as exc:
         # Log full traceback server-side
