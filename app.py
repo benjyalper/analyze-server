@@ -115,12 +115,15 @@ async def analyze(file: UploadFile = File(...)) -> Dict[str, Any]:
         plt.savefig(vis_path)
         plt.close()
 
+        print("✅ Returning notes:", metrics.get("notes"))
+
         # 7) Return exactly the shape your client code expects:
         return {
-    "librosa": metrics,
-    "visualization": f"/static/plots/{vis_filename}"
-}
-
+            "results": {
+                "results": metrics
+            },
+            "visualization": f"/static/plots/{vis_filename}"
+        }
 
     except Exception as exc:
         # Log full traceback server-side
